@@ -1,111 +1,93 @@
 package com.androidfirebase.diep.learnandroidfirebase;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
-public class MainActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-    FirebaseAuth firebaseAuth;
-    LoginButton btnDangNhapFacebook;
-    CallbackManager callbackManager;
+public class MainActivity extends AppCompatActivity {
+
+    FirebaseStorage firebaseStorage;
+    StorageReference storageReference;
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseAuth.signOut();
-        LoginManager.getInstance().logOut();
-        callbackManager = CallbackManager.Factory.create();
+        firebaseStorage = FirebaseStorage.getInstance();
 
-        btnDangNhapFacebook = (LoginButton) findViewById(R.id.btnDangNhapFacebook);
-        btnDangNhapFacebook.setReadPermissions("email", "public_profile");
-        btnDangNhapFacebook.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        imageView = (ImageView) findViewById(R.id.imageView);
+//        storageReference = firebaseStorage.getReference();
+//        storageReference.child("images").child("limon.png");
+//        Log.d("KiemTra", storageReference.child("images").child("limon.png").getPath());
+        Drawable drawable = imageView.getDrawable();
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+
+        byte[] data = byteArrayOutputStream.toByteArray();
+//        storageReference = firebaseStorage.getReference().child("photos").child("aa.jpg");
+//        storageReference.putBytes(data);
+
+        //Upload Uri
+
+        new Thread(new Runnable() {
             @Override
-            public void onSuccess(LoginResult loginResult) {
-                String tokenID = loginResult.getAccessToken().getToken();
-                AuthCredential authCredential = FacebookAuthProvider.getCredential(tokenID);
-                firebaseAuth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Toast.makeText(MainActivity.this, "Dang nhap thanh cong", Toast.LENGTH_LONG).show();
-                    }
-                });
-
+            public void run() {
+                try{
+                    InputStream inputStream = new URL("https://i.ytimg.com/vi/9rqEV0qnW2s/maxresdefault.jpg").openStream();
+                    storageReference = firebaseStorage.getReference().child("photos").child("maxresdefault.jpg");
+                    storageReference.putStream(inputStream);
+                    Log.d("VaoDay", "VDDDDDDDDDDDDDDDDDDDDDD");
+                }
+                catch (FileNotFoundException e)
+                {
+                    e.printStackTrace();
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                catch(IOException e)
+                {
+                    e.printStackTrace();
+                }
             }
+        }).start();
+//        Uri uri = Uri.parse("E:\\cun.jpg");
+//        //InputStream inputStream = new
+//        storageReference = firebaseStorage.getReference().child("photos/cun.jpg");
+//        storageReference.putFile(uri);
 
-            @Override
-            public void onCancel() {
 
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-
-            }
-        });
-
-        btnDangNhapFacebook.setOnClickListener(new View.OnClickListener() {
-               @Override
-               public void onClick(View v) {
-
-               }
-           }
-        );
 
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    public  void onStart()
-    {
-        super.onStart();
-        firebaseAuth.addAuthStateListener(this);
-    }
-
-    @Override
-    public void onStop()
-    {
-        super.onStop();
-        firebaseAuth.removeAuthStateListener(this);
-    }
-
-    @Override
-    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-        FirebaseUser user = firebaseAuth.getCurrentUser();
-        if(user !=null){
-            Log.d("KiemTraSuccess", user.getUid());
-            Intent iUpdateIser = new Intent(MainActivity.this, UpdateUserActivity.class);
-            startActivity(iUpdateIser);
-        }
-        else{
-            Log.d("KiemTraOut", "Da log out roi!!");
-        }
-    }
-
 }

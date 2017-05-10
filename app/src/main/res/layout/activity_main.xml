@@ -6,9 +6,9 @@
     android:layout_height="match_parent"
     tools:context="com.androidfirebase.diep.learnandroidfirebase.MainActivity">
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/btnDangNhapFacebook"
+    <ImageView
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
+        android:layout_height="match_parent"
+        android:src="@mipmap/ic_launcher" />
 </LinearLayout>
